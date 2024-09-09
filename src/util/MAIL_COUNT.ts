@@ -1,0 +1,1 @@
+export const MAIL_COUNT = 30;

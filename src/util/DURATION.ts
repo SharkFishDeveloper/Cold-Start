@@ -1,0 +1,1 @@
+export const email_duration_time = 10000;
