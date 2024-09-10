@@ -14,7 +14,7 @@ app.use(express.json())
 app.use(cors())
 require('dotenv').config(); 
 const email_duration = email_duration_time; //! this time should be 24hr / mail_count
-let EMAIL_BODY = emailInfo;
+let EMAIL_BODY:Mail[] = emailInfo;
 const mail_count = MAIL_COUNT;
 const email_sender = process.env.GMAIL_USER;
 //*--------------
@@ -32,23 +32,22 @@ const auth = nodemailer.createTransport({
 //*---------------
 interface Mail {
     NAME?:string
-    EMAIL_RECIEVER: string; 
+    EMAIL_RECEIVER: string; 
     COMPANY: string;
-    TYPE:"COMPANY"|"STARTUP"|string
-  }
+    TYPE: string;
+}
 
-type AppenedMailBody ={
-    mails: Mail[]; 
-  };
+type AppendedMailBody = {
+    mails: Mail[];
+};
 
 //*---------------
 let current_email_index = 0;
 
 setInterval(()=>{
- 
    if(current_email_index < EMAIL_BODY.length){
     const company = EMAIL_BODY[current_email_index].COMPANY;
-    const email_receiver = EMAIL_BODY[current_email_index].EMAIL_RECIEVER;
+    const email_receiver = EMAIL_BODY[current_email_index].EMAIL_RECEIVER;
     console.log(company,email_receiver,email_sender);
     current_email_index++;
 
@@ -56,23 +55,30 @@ setInterval(()=>{
         from : email_sender,
         to : email_receiver,
         subject : "Node Js Mail Testing!",
-        text : "Hello this is a text mail!"
+        text : "Hello this is a text mail!",
+        attachments: [
+            {
+              filename: 'My-resume', // The name of the attachment file
+              path: path.join("src","File","Resume.pdf") // Full path to the file
+            },
+        ]
     };
-        // try {
-        //     auth.sendMail(receiver, (error, emailResponse) => {
-        //         if(error)
-        //         throw error;
-        //         });
-        // } catch (error) {
-        //     console.log("OOPS error->",error)
-        // }
+    console.log(path.join("src","File","Resume.pdf"));
+        try {
+            auth.sendMail(receiver, (error, emailResponse) => {
+                if(error)
+                throw error;
+                });
+        } catch (error) {
+            console.log("OOPS error->",error)
+        }
        
    }
    else{
     current_email_index = 0;
    }
 }
-,2000)
+,10000)
 
 
 app.get("/",(req,res)=>{
@@ -89,11 +95,19 @@ app.get("/all-emails",(req,res)=>{
 
 app.post("/append-emails",async(req,res)=>{
    try {
-    const {mails}:AppenedMailBody = req.body;
+    const {mails}:AppendedMailBody = req.body;
+    let error = false;
+    mails.forEach((item)=>{
+        if(item.TYPE !== "COMPANY" && item.TYPE !== "STARTUP" ){
+            error = true;
+        }
+    })
+    if(error){
+        return res.json({message:"TYPE SHOULD BE EITHER COMPANY OR STARTUP"}).status(400);
+    }
     const email_path = path.join("src","util","EMAIL_INFO.ts")
 
     const newMails = mails.filter(mail => !emailExists(mail, EMAIL_BODY));
-
     EMAIL_BODY = [...EMAIL_BODY, ...newMails];
     const updatedContent = `const emailInfo = ${JSON.stringify(EMAIL_BODY, null, 2)};\n\nexport default emailInfo;`;
     fs.writeFileSync(email_path, updatedContent, 'utf-8');
@@ -105,25 +119,23 @@ app.post("/append-emails",async(req,res)=>{
 })
 
 app.post("/delete-emails",async(req,res)=>{
-    const {mails}:AppenedMailBody = req.body;
+    const {mails}:AppendedMailBody = req.body;
     const email_path = path.join("src","util","EMAIL_INFO.ts")
-    console.log("EMAIL INFO",EMAIL_BODY)
     const filteredEmailInfo = EMAIL_BODY.filter(
         email => !mails.some(mail => isMatchingMail(email, mail))
     );
     EMAIL_BODY = filteredEmailInfo;
-    console.log("FILTERED",filteredEmailInfo);
     const updatedContent = `const emailInfo = ${JSON.stringify(filteredEmailInfo, null, 2)};\n\nexport default emailInfo;`;
     
     fs.writeFileSync(email_path, updatedContent, 'utf-8');
     return res.json({message:"Deleted emails successfully !!"}).status(200);
 })
 
-const isMatchingMail = (mail: Mail, compare: Mail) => mail.EMAIL_RECIEVER === compare.EMAIL_RECIEVER;
+const isMatchingMail = (mail: Mail, compare: Mail) => mail.EMAIL_RECEIVER === compare.EMAIL_RECEIVER;
 
 const emailExists = (email: Mail, emailList: Mail[]): boolean => 
         emailList.some(existingEmail => 
-        existingEmail.EMAIL_RECIEVER === email.EMAIL_RECIEVER && 
+        existingEmail.EMAIL_RECEIVER === email.EMAIL_RECEIVER && 
         existingEmail.COMPANY === email.COMPANY
 );
 

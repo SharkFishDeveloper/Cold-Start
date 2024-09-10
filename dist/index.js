@@ -44,34 +44,42 @@ let current_email_index = 0;
 setInterval(() => {
     if (current_email_index < EMAIL_BODY.length) {
         const company = EMAIL_BODY[current_email_index].COMPANY;
-        const email_receiver = EMAIL_BODY[current_email_index].EMAIL_RECIEVER;
+        const email_receiver = EMAIL_BODY[current_email_index].EMAIL_RECEIVER;
         console.log(company, email_receiver, email_sender);
         current_email_index++;
         const receiver = {
             from: email_sender,
             to: email_receiver,
             subject: "Node Js Mail Testing!",
-            text: "Hello this is a text mail!"
+            text: "Hello this is a text mail!",
+            attachments: [
+                {
+                    filename: 'My-resume', // The name of the attachment file
+                    path: path_1.default.join("src", "File", "Resume.pdf") // Full path to the file
+                },
+            ]
         };
-        // try {
-        //     auth.sendMail(receiver, (error, emailResponse) => {
-        //         if(error)
-        //         throw error;
-        //         });
-        // } catch (error) {
-        //     console.log("OOPS error->",error)
-        // }
+        console.log(path_1.default.join("src", "File", "Resume.pdf"));
+        try {
+            auth.sendMail(receiver, (error, emailResponse) => {
+                if (error)
+                    throw error;
+            });
+        }
+        catch (error) {
+            console.log("OOPS error->", error);
+        }
     }
     else {
         current_email_index = 0;
     }
-}, 2000);
+}, 10000);
 app.get("/", (req, res) => {
     return res.json({ message: "HELLO" }).status(200);
 });
 app.get("/all-emails", (req, res) => {
     try {
-        return res.json(EMAIL_INFO_1.default).status(200);
+        return res.json(EMAIL_BODY).status(200);
     }
     catch (error) {
         return res.json({ message: "Something bad happened !!" }).status(400);
@@ -80,8 +88,16 @@ app.get("/all-emails", (req, res) => {
 app.post("/append-emails", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { mails } = req.body;
+        let error = false;
+        mails.forEach((item) => {
+            if (item.TYPE !== "COMPANY" && item.TYPE !== "STARTUP") {
+                error = true;
+            }
+        });
+        if (error) {
+            return res.json({ message: "TYPE SHOULD BE EITHER COMPANY OR STARTUP" }).status(400);
+        }
         const email_path = path_1.default.join("src", "util", "EMAIL_INFO.ts");
-        const email_data = EMAIL_BODY;
         const newMails = mails.filter(mail => !emailExists(mail, EMAIL_BODY));
         EMAIL_BODY = [...EMAIL_BODY, ...newMails];
         const updatedContent = `const emailInfo = ${JSON.stringify(EMAIL_BODY, null, 2)};\n\nexport default emailInfo;`;
@@ -95,15 +111,15 @@ app.post("/append-emails", (req, res) => __awaiter(void 0, void 0, void 0, funct
 app.post("/delete-emails", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { mails } = req.body;
     const email_path = path_1.default.join("src", "util", "EMAIL_INFO.ts");
-    console.log("EMAIL INFO", EMAIL_BODY);
     const filteredEmailInfo = EMAIL_BODY.filter(email => !mails.some(mail => isMatchingMail(email, mail)));
     EMAIL_BODY = filteredEmailInfo;
-    console.log("FILTERED", filteredEmailInfo);
     const updatedContent = `const emailInfo = ${JSON.stringify(filteredEmailInfo, null, 2)};\n\nexport default emailInfo;`;
     fs_1.default.writeFileSync(email_path, updatedContent, 'utf-8');
     return res.json({ message: "Deleted emails successfully !!" }).status(200);
 }));
-const isMatchingMail = (mail, compare) => mail.EMAIL_RECIEVER === compare.EMAIL_RECIEVER;
-const emailExists = (email, emailList) => emailList.some(existingEmail => existingEmail.EMAIL_RECIEVER === email.EMAIL_RECIEVER &&
+const isMatchingMail = (mail, compare) => mail.EMAIL_RECEIVER === compare.EMAIL_RECEIVER;
+const emailExists = (email, emailList) => emailList.some(existingEmail => existingEmail.EMAIL_RECEIVER === email.EMAIL_RECEIVER &&
     existingEmail.COMPANY === email.COMPANY);
+const randomNumberGenerator = () => {
+};
 app.listen(5000);
