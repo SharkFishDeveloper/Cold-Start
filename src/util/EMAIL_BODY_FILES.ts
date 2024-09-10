@@ -1,0 +1,1 @@
+export const EMAIL_BODY_FILES = 2;

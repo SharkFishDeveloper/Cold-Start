@@ -1,0 +1,13 @@
+Hi [Name],
+
+I’m Shahzeb, a third-year Computer Science student at Thapar Institute of Engineering and Technology. With hands-on experience in Full Stack development (MERN) and Next.js, I’m eager to apply my skills and explore a 2-3 month paid internship opportunity at [COMPANY].
+
+I’m impressed by the forward-thinking approach your [TYPE] has shown, and I’m excited about the possibility of contributing to your team. If there’s a chance we could discuss this further, I’d love to connect!
+
+Looking forward to hearing from you.
+
+Best regards,
+Shahzeb Akhtar
+Gmail: shahzebakhtar66@gmail.com
+Github: https://github.com/SharkFishDeveloper
+LinkedIn: https://www.linkedin.com/in/shahzeb-akhtar-36b584254/

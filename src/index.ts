@@ -6,6 +6,8 @@ import { email_duration_time } from "./util/DURATION";
 import { MAIL_COUNT } from "./util/MAIL_COUNT";
 import fs from "fs";
 import path from "path";
+import { EMAIL_BODY_FILES } from "./util/EMAIL_BODY_FILES";
+import { EmailSubject } from "./Email_body/Subject";
 
 
 //*--------------
@@ -16,7 +18,9 @@ require('dotenv').config();
 const email_duration = email_duration_time; //! this time should be 24hr / mail_count
 let EMAIL_BODY:Mail[] = emailInfo;
 const mail_count = MAIL_COUNT;
+const email_body_count = EMAIL_BODY_FILES;
 const email_sender = process.env.GMAIL_USER;
+const email_subj = EmailSubject;
 //*--------------
 
 const auth = nodemailer.createTransport({
@@ -44,42 +48,73 @@ type AppendedMailBody = {
 //*---------------
 let current_email_index = 0;
 
-setInterval(()=>{
+setInterval(async()=>{
    if(current_email_index < EMAIL_BODY.length){
     const company = EMAIL_BODY[current_email_index].COMPANY;
     const email_receiver = EMAIL_BODY[current_email_index].EMAIL_RECEIVER;
-    console.log(company,email_receiver,email_sender);
+    const name = EMAIL_BODY[current_email_index].NAME;
+    const cType = EMAIL_BODY[current_email_index].TYPE;
+
     current_email_index++;
+
+    const email_Sub_Index = getOneRandomNumber()-1;
+
+    let emailSubject = email_subj[email_Sub_Index];
+    if (emailSubject.includes("[COMPANY]")) {
+        emailSubject = emailSubject.replace("[COMPANY]", company);
+    }
+
+    const rNumber = randomNumberGenerator();
+    let fileName = "";
+    let emailtext = "";
+    if(name){
+        fileName = `en${rNumber}.txt`;
+        const a = path.join("src","Email_body","With-name",fileName)
+        let data = fs.readFileSync(a,"utf-8");
+        data = data.replace("[COMPANY]",company);
+        data = data.replace("[TYPE]",cType);
+        data = data.replace("[Name]",name);
+        emailtext = data;
+
+    }
+    else if(!name){
+        fileName = `e${rNumber}.txt`;
+        const a = path.join("src","Email_body","Without-name",fileName)
+        let data  = fs.readFileSync(a,"utf-8");
+        data = data.replace("[COMPANY]",company);
+        data = data.replace("[TYPE]",cType);
+        emailtext = data;
+    }
 
     const receiver = {
         from : email_sender,
         to : email_receiver,
-        subject : "Node Js Mail Testing!",
-        text : "Hello this is a text mail!",
+        subject : emailSubject,
+        text : emailtext,
         attachments: [
             {
-              filename: 'My-resume', // The name of the attachment file
-              path: path.join("src","File","Resume.pdf") // Full path to the file
+              filename: 'Resume.pdf',
+              path: path.join("src","File","Resume.pdf") 
             },
         ]
     };
-    console.log(path.join("src","File","Resume.pdf"));
-        try {
-            auth.sendMail(receiver, (error, emailResponse) => {
-                if(error)
-                throw error;
-                });
-        } catch (error) {
-            console.log("OOPS error->",error)
-        }
+    console.log(receiver);
+        // try {
+        //     auth.sendMail(receiver, (error, emailResponse) => {
+        //         if(error)
+        //         throw error;
+        //         });
+        // } catch (error) {
+        //     console.log("OOPS error->",error)
+        // }
        
    }
    else{
     current_email_index = 0;
    }
 }
-,10000)
-
+,(86400000/MAIL_COUNT))
+// ,5000)
 
 app.get("/",(req,res)=>{
     return res.json({message:"HELLO"}).status(200);
@@ -140,8 +175,11 @@ const emailExists = (email: Mail, emailList: Mail[]): boolean =>
 );
 
 const randomNumberGenerator = ()=>{
-    
+    const number =  Math.floor(Math.random() * email_body_count) + 1;
+    return number; 
 }
 
-
+function getOneRandomNumber() {
+    return Math.floor(Math.random() * email_subj.length) + 1;
+}
 app.listen(5000);

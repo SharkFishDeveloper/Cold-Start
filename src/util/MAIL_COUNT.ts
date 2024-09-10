@@ -1,1 +1,1 @@
-export const MAIL_COUNT = 30;
+export const MAIL_COUNT = 8640;
