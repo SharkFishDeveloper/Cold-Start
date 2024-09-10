@@ -96,7 +96,6 @@ setInterval(async()=>{
             },
         ]
     };
-    console.log(email_receiver);
         // try {
         //     auth.sendMail(receiver, (error, emailResponse) => {
         //         if(error)
