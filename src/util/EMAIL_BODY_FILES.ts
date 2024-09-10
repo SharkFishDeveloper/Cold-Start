@@ -1,1 +1,1 @@
-export const EMAIL_BODY_FILES = 2;
+export const EMAIL_BODY_FILES = 5;

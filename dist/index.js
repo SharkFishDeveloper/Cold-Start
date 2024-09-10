@@ -50,7 +50,8 @@ setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
         const company = EMAIL_BODY[current_email_index].COMPANY;
         const email_receiver = EMAIL_BODY[current_email_index].EMAIL_RECEIVER;
         const name = EMAIL_BODY[current_email_index].NAME;
-        const cType = EMAIL_BODY[current_email_index].TYPE;
+        let cType = EMAIL_BODY[current_email_index].TYPE;
+        cType = cType.charAt(0).toUpperCase() + cType.slice(1).toLowerCase();
         current_email_index++;
         const email_Sub_Index = getOneRandomNumber() - 1;
         let emailSubject = email_subj[email_Sub_Index];
@@ -89,7 +90,7 @@ setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
                 },
             ]
         };
-        console.log(receiver);
+        console.log(email_receiver);
         // try {
         //     auth.sendMail(receiver, (error, emailResponse) => {
         //         if(error)
@@ -102,8 +103,9 @@ setInterval(() => __awaiter(void 0, void 0, void 0, function* () {
     else {
         current_email_index = 0;
     }
-}), (86400000 / MAIL_COUNT_1.MAIL_COUNT));
-// ,5000)
+})
+// ,(86400000/MAIL_COUNT))
+, 10000 / (MAIL_COUNT_1.MAIL_COUNT * EMAIL_BODY.length));
 app.get("/", (req, res) => {
     return res.json({ message: "HELLO" }).status(200);
 });

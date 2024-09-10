@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import nodemailer from "nodemailer";
 import emailInfo from "./util/EMAIL_INFO";
-import { email_duration_time } from "./util/DURATION";
 import { MAIL_COUNT } from "./util/MAIL_COUNT";
 import fs from "fs";
 import path from "path";
@@ -15,9 +14,7 @@ const app = express();
 app.use(express.json())
 app.use(cors())
 require('dotenv').config(); 
-const email_duration = email_duration_time; //! this time should be 24hr / mail_count
 let EMAIL_BODY:Mail[] = emailInfo;
-const mail_count = MAIL_COUNT;
 const email_body_count = EMAIL_BODY_FILES;
 const email_sender = process.env.GMAIL_USER;
 const email_subj = EmailSubject;
@@ -53,7 +50,8 @@ setInterval(async()=>{
     const company = EMAIL_BODY[current_email_index].COMPANY;
     const email_receiver = EMAIL_BODY[current_email_index].EMAIL_RECEIVER;
     const name = EMAIL_BODY[current_email_index].NAME;
-    const cType = EMAIL_BODY[current_email_index].TYPE;
+    let cType = EMAIL_BODY[current_email_index].TYPE;
+    cType = cType.charAt(0).toUpperCase() + cType.slice(1).toLowerCase();
 
     current_email_index++;
 
@@ -98,7 +96,7 @@ setInterval(async()=>{
             },
         ]
     };
-    console.log(receiver);
+    console.log(email_receiver);
         // try {
         //     auth.sendMail(receiver, (error, emailResponse) => {
         //         if(error)
@@ -113,8 +111,8 @@ setInterval(async()=>{
     current_email_index = 0;
    }
 }
-,(86400000/MAIL_COUNT))
-// ,5000)
+,(86400000/(MAIL_COUNT*EMAIL_BODY.length)))
+// ,10000/(MAIL_COUNT*EMAIL_BODY.length))
 
 app.get("/",(req,res)=>{
     return res.json({message:"HELLO"}).status(200);
